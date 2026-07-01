@@ -1014,6 +1014,10 @@ ${n + 1}. ${purpose.request}
     if (!titleOutput.value.trim()) titleOutput.value = makeTitleText();
     if (!bodyOutput.value.trim()) bodyOutput.value = makeBodyText();
   }
+  function refreshDetailDependentText() {
+    bodyOutput.value = makeBodyText();
+    renderSms();
+  }
   async function copyText(text, fallbackEl, label) {
     if (!text.trim()) { ensureGenerated(); text = fallbackEl.value; }
     try {
@@ -1035,18 +1039,22 @@ ${n + 1}. ${purpose.request}
   });
   smsToneSel.addEventListener("change", renderSms);
   $("copyTitle").addEventListener("click", () => copyText(titleOutput.value, titleOutput, "제목을"));
-  $("copyBody").addEventListener("click", () => copyText(bodyOutput.value, bodyOutput, "본문을"));
+  $("copyBody").addEventListener("click", () => {
+    bodyOutput.value = makeBodyText();
+    copyText(bodyOutput.value, bodyOutput, "본문을");
+  });
   $("copyAll").addEventListener("click", () => {
     ensureGenerated();
+    titleOutput.value = makeTitleText();
+    bodyOutput.value = makeBodyText();
     const combined = `제목\n${titleOutput.value}\n\n본문\n${bodyOutput.value}`;
     copyBuffer.value = combined;
     copyText(combined, copyBuffer, "제목과 본문 전체를");
   });
   [purposeEl, stakeholderEl].forEach((el) =>
     el.addEventListener("change", () => refreshAll("선택한 조건을 반영했습니다.")));
-  detailsEl.addEventListener("input", () => {
-    if (bodyOutput.value.trim()) bodyOutput.value = makeBodyText();
-    renderSms();
+  ["input", "change", "blur", "compositionend"].forEach((eventName) => {
+    detailsEl.addEventListener(eventName, refreshDetailDependentText);
   });
 
   refreshAll(); // 국민신문고 초기 렌더
