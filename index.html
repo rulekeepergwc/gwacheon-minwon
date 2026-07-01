@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>과천 재산권 보호 민원 도우미</title>
+  <meta name="description" content="과천 데이터센터 관련 행정절차가 법령과 공표된 기준에 따라 공정·조속하게 처리되도록, 재산권 침해 우려를 담은 민원을 손쉽게 작성·접수하는 도우미입니다. 브라우저 안에서만 동작합니다.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="과천 재산권 보호 민원 도우미">
+  <meta property="og:description" content="재산권 침해 행위 중단을 요청하는 민원을 손쉽게 작성·접수하세요. (개인정보 미저장)">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%A0%3C/text%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --ink: #182234;
+      --muted: #5c677d;
+      --line: #dde4ef;
+      --primary: #1d4f91;
+      --primary-dark: #153e73;
+      --primary-soft: #e7f0fb;
+      --accent: #2c7566;
+      --accent-soft: #e6f4f1;
+      --amber: #c78a20;
+      --amber-soft: #fff7df;
+      --radius: 12px;
+      --shadow: 0 10px 26px rgba(23,32,51,.10);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+      line-height: 1.62; background: var(--bg);
+    }
+    a { color: inherit; }
+
+    /* ===== 세로형(모바일 우선) 단일 컬럼 ===== */
+    .page { width: min(600px, 100%); margin: 0 auto; padding: 0 14px 40px; }
+
+    /* 히어로 */
+    .hero {
+      margin: 14px 0 12px; padding: 24px 22px; color: #fff; border-radius: var(--radius);
+      background: linear-gradient(135deg, #2f5f9c, #2c7566); box-shadow: var(--shadow);
+    }
+    .hero .eyebrow { margin: 0 0 8px; font-size: .82rem; font-weight: 700; color: #d3e6ff; }
+    .hero h1 { margin: 0; font-size: 1.6rem; line-height: 1.22; }
+    .hero p { margin: 10px 0 0; font-size: .95rem; color: #eaf3ff; }
+    .privacy-chip {
+      display: inline-flex; align-items: center; gap: 7px; margin-top: 14px;
+      padding: 7px 12px; font-size: .82rem; font-weight: 700; color: #eafff7;
+      background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); border-radius: 999px;
+    }
+
+    /* 탭 */
+    .tabs {
+      position: sticky; top: 0; z-index: 20; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      padding: 8px; margin-bottom: 14px; background: rgba(244,246,251,.92);
+      backdrop-filter: blur(6px); border-radius: 999px;
+    }
+    .tab {
+      min-height: 46px; padding: 8px; font-size: .95rem; font-weight: 800; color: var(--muted);
+      background: #eef1f7; border: 1.5px solid transparent; border-radius: 999px; cursor: pointer;
+      transition: all .15s ease;
+    }
+    .tab.is-active { color: #fff; background: var(--primary); box-shadow: 0 6px 16px rgba(29,79,145,.28); }
+
+    .tabpanel[hidden] { display: none; }
+
+    /* 카드 공통 */
+    .card {
+      margin-bottom: 14px; padding: 18px; background: var(--surface);
+      border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .card > h2 {
+      display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 1.15rem;
+    }
+    .card > .sub { margin: 0 0 14px; color: var(--muted); font-size: .9rem; }
+
+    /* 하위 탭 (화면 전환) */
+    .subtabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .subtab {
+      min-height: 46px; font-weight: 800; font-size: .94rem; color: var(--muted);
+      background: #fff; border: 1.5px solid var(--line); border-radius: 12px; cursor: pointer;
+      transition: all .15s ease;
+    }
+    .subtab.is-active { color: #fff; background: var(--accent); border-color: var(--accent); box-shadow: 0 6px 16px rgba(44,117,102,.24); }
+    .subpanel[hidden] { display: none; }
+
+    /* 문자 수신인 그룹 */
+    .sms-group { margin-top: 14px; }
+    .sms-group-title {
+      display: flex; align-items: center; gap: 7px; margin-bottom: 8px; padding: 7px 12px;
+      font-weight: 800; font-size: .92rem; color: #244; background: var(--accent-soft);
+      border-left: 4px solid var(--accent); border-radius: 8px;
+    }
+
+    /* 폼 */
+    .field { display: grid; gap: 7px; margin-bottom: 14px; }
+    .field-title, label { font-weight: 700; font-size: .96rem; }
+    select, textarea, .result-box {
+      width: 100%; color: var(--ink); font: inherit; background: #fff;
+      border: 1px solid #c9d3e2; border-radius: 10px; outline: none;
+    }
+    select { min-height: 50px; padding: 0 14px; }
+    textarea { min-height: 110px; padding: 13px; resize: vertical; }
+    select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(29,79,145,.14); }
+    .hint { margin: 0; color: var(--muted); font-size: .84rem; }
+
+    /* 기관 카드 */
+    .agency-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .agency-card {
+      display: flex; flex-direction: column; gap: 4px; min-height: 62px; padding: 10px 12px;
+      color: var(--ink); background: #fff; border: 2px solid #e0e7f2; border-radius: 10px;
+      cursor: pointer; text-align: left;
+    }
+    .agency-card:hover { border-color: #f0a93a; background: #fffdf6; }
+    .agency-card.is-selected { color: #fff; background: #3658d8; border-color: #f59e0b; }
+    .agency-card-top { display: flex; align-items: center; gap: 5px; }
+    .agency-badge { padding: 1px 6px; font-size: .66rem; font-weight: 900; color: #fff; background: #6d47ea; border-radius: 5px; }
+    .agency-badge.rec { background: #e92739; }
+    .agency-name { font-weight: 800; font-size: .9rem; }
+    .agency-card-note { color: #8a94a6; font-size: .74rem; font-weight: 600; }
+    .agency-card.is-selected .agency-card-note { color: #dce6ff; }
+
+    /* 버튼 */
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+    .copy-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .copy-actions .full { grid-column: 1 / -1; }
+    button, .link-button {
+      display: inline-flex; align-items: center; justify-content: center; min-height: 50px;
+      padding: 12px 14px; color: #fff; font: inherit; font-weight: 800; text-align: center;
+      text-decoration: none; background: var(--primary); border: 0; border-radius: 10px; cursor: pointer;
+      transition: background .15s ease, transform .12s ease;
+    }
+    button:active, .link-button:active { transform: translateY(1px); }
+    .secondary { color: var(--primary); background: var(--primary-soft); border: 1px solid #bcd0ee; }
+    .accent { background: var(--accent); }
+    .purple { background: #6847d9; }
+
+    /* 결과 */
+    .result-label { display: flex; justify-content: space-between; align-items: baseline; margin: 12px 0 6px; font-weight: 700; }
+    .result-label span { color: var(--muted); font-size: .82rem; font-weight: 600; }
+    .result-box { display: block; min-height: 54px; padding: 13px; white-space: pre-wrap; overflow-wrap: anywhere; background: #fbfdff; }
+    .result-box.body { min-height: 300px; }
+    .status { min-height: 22px; margin: 10px 0 0; color: var(--accent); font-size: .9rem; font-weight: 700; }
+    .copy-buffer { position: fixed; left: -9999px; top: 0; width: 1px; height: 1px; opacity: 0; }
+
+    .portal-box {
+      display: grid; gap: 10px; margin-top: 14px; padding: 14px;
+      background: var(--accent-soft); border: 1px solid #b9ded6; border-radius: 10px;
+    }
+    .portal-box p { margin: 0; color: #204d45; font-size: .9rem; }
+
+    /* 문자 */
+    .sms-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .sms-head .tone { margin: 0; color: var(--muted); font-size: .86rem; }
+    .sms-refresh { min-height: 40px; padding: 6px 12px; font-size: .84rem; }
+    .sms-preview { margin-bottom: 10px; padding: 12px; background: #f7f9ff; border: 1px solid #d3ddf1; border-radius: 10px; }
+    .sms-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .sms-two .sms-preview { margin: 0; }
+    /* 좁은 화면(스마트폰): 전송 버튼·미리보기를 세로로 자동 전환
+       (DOM 순서: 1차 전송 → 2차 전송 → 1차 미리보기 → 2차 미리보기) */
+    @media (max-width: 560px) { .sms-row { grid-template-columns: 1fr; } }
+    .sms-preview-title { display: flex; justify-content: space-between; font-weight: 800; font-size: .9rem; }
+    .sms-count { color: var(--muted); font-size: .78rem; font-weight: 700; }
+    .sms-text { margin: 6px 0 0; color: #283348; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .9rem; }
+    .sms-recipients { display: grid; gap: 10px; margin-top: 4px; }
+    .sms-rcpt { padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+    .sms-rcpt-name { font-weight: 800; font-size: .92rem; margin-bottom: 8px; }
+    .sms-rcpt-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .sms-rcpt-btns .link-button { min-height: 44px; }
+    .sms-empty { margin: 0; padding: 14px; color: #6b7488; font-size: .9rem; background: #eef1f8; border-radius: 10px; }
+    .sms-note { margin: 12px 0 0; color: var(--muted); font-size: .86rem; }
+
+    /* ===== 안내(가이드) 탭 — 조금 다른 디자인 ===== */
+    .guide { border-top: 5px solid var(--accent); }
+    .guide-title { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 1.18rem; }
+    .guide-lead { margin: 0 0 16px; color: var(--muted); font-size: .9rem; }
+    .guide-sub {
+      display: inline-flex; align-items: center; gap: 7px; margin: 20px 0 12px; padding: 6px 12px;
+      font-size: .95rem; color: #1f5a4e; background: var(--accent-soft); border-radius: 999px;
+    }
+    .steps { list-style: none; margin: 0; padding: 0; position: relative; }
+    .steps::before { content: ""; position: absolute; left: 15px; top: 8px; bottom: 8px; width: 2px; background: #d9e6e1; }
+    .steps li { position: relative; display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 0 0 16px 0; }
+    .step-no {
+      z-index: 1; display: grid; place-items: center; width: 32px; height: 32px; color: #fff;
+      font-weight: 900; font-size: .95rem; background: var(--accent); border-radius: 999px;
+    }
+    .steps.alt .step-no { background: #6847d9; }
+    .steps b { font-size: .98rem; }
+    .steps p { margin: 2px 0 0; color: var(--muted); font-size: .88rem; }
+    .kbd { display: inline-block; padding: 1px 7px; font-weight: 800; font-size: .84rem; color: var(--primary); background: var(--primary-soft); border-radius: 6px; }
+    .tips { display: grid; gap: 10px; margin-top: 18px; }
+    .tip { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding: 12px 14px; background: var(--amber-soft); border: 1px solid #ecd8a3; border-radius: 10px; font-size: .9rem; }
+    .tip-badge { padding: 3px 8px; font-size: .72rem; font-weight: 900; color: #7a5510; background: #ffe6a1; border-radius: 6px; white-space: nowrap; }
+
+    /* 주의 / 푸터 */
+    .caution { margin-top: 6px; padding: 16px 18px; color: #4a3f3c; background: #fff0ee; border: 1px solid #efcdc7; border-radius: var(--radius); }
+    .caution h2 { margin: 0 0 8px; font-size: 1.02rem; }
+    .caution ul { margin: 0; padding-left: 18px; font-size: .9rem; }
+    .caution li + li { margin-top: 5px; }
+    footer { margin-top: 16px; color: var(--muted); font-size: .82rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <!-- 히어로 -->
+    <header class="hero">
+      <p class="eyebrow">과천 지역 주민 민원 작성 지원</p>
+      <h1>재산권을 침해하는 행위를<br>중단해 주십시오</h1>
+      <p>데이터센터 관련 행정절차가 법령과 공표된 기준에 따라 공정·조속하게 처리되도록, 정중하고 논리적인 민원을 손쉽게 작성·접수해 보세요.</p>
+      <span class="privacy-chip">🔒 입력 내용은 저장·전송하지 않고 이 화면 안에서만 처리됩니다</span>
+    </header>
+
+    <!-- 탭 -->
+    <nav class="tabs" role="tablist">
+      <button class="tab is-active" data-tab="apply" role="tab" aria-selected="true">✍️ 민원 접수 시작하기</button>
+      <button class="tab" data-tab="guide" role="tab" aria-selected="false">📖 처음이신가요?</button>
+    </nav>
+
+    <!-- ============ 탭 1: 민원 접수 시작하기 ============ -->
+    <section id="tab-apply" class="tabpanel" role="tabpanel">
+      <div class="subtabs" role="tablist">
+        <button class="subtab is-active" data-sub="minwon" role="tab" aria-selected="true">📮 국민신문고 접수</button>
+        <button class="subtab" data-sub="sms" role="tab" aria-selected="false">📱 항의문자 발송</button>
+      </div>
+
+      <!-- 1) 국민신문고 하위 화면 -->
+      <div id="sub-minwon" class="subpanel" role="tabpanel">
+      <section id="sec-minwon" class="card">
+        <h2>📮 국민신문고 민원 접수하기</h2>
+        <p class="sub">기관·취지·유형을 고르면 제목과 본문 초안이 만들어집니다. 복사해서 국민신문고에 붙여넣으세요.</p>
+
+        <div class="field">
+          <div id="agencyLabel" class="field-title">① 처리기관 선택</div>
+          <input type="hidden" id="agency" value="과천시청">
+          <div id="agencyGrid" class="agency-grid" role="listbox" aria-labelledby="agencyLabel"></div>
+        </div>
+
+        <div class="field">
+          <label for="purpose">② 민원 취지</label>
+          <select id="purpose">
+            <option value="stop">재산권 침해 행위 중단 및 조속 처리 요청</option>
+            <option value="delay">부당한 절차 지연 중단 요청</option>
+            <option value="basis">법적 근거·검토자료 공개 요청</option>
+            <option value="balance">이해관계 의견의 균형 반영 요청</option>
+            <option value="comprehensive">종합 검토 후 조속 처리 요청</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="stakeholder">③ 이해관계 유형</label>
+          <select id="stakeholder">
+            <option value="과천 거주 주민">과천 거주 주민</option>
+            <option value="인근 부동산 소유자">인근 부동산 소유자</option>
+            <option value="생활권 주민">생활권 주민</option>
+            <option value="입주 예정자">입주 예정자</option>
+            <option value="수분양자">수분양자</option>
+            <option value="기타 이해관계자">기타 이해관계자</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="details">④ 추가로 적을 피해 내용 <span class="hint" style="font-weight:400">(선택)</span></label>
+          <textarea id="details" maxlength="900" placeholder="예: 보유 부동산, 입주 예정, 분양계약 등 본인의 이해관계와, 절차 지연으로 우려되는 구체적 재산상 불이익을 사실에 맞게 적어 주세요. 이름·전화번호·상세 주소 등 개인정보는 넣지 마세요."></textarea>
+          <p class="hint">입력 내용은 이 화면 안에서만 반영되며 저장되지 않습니다.</p>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="makeTitle">제목 생성</button>
+          <button type="button" id="makeBody" class="accent">본문 생성</button>
+        </div>
+
+        <div class="result-label"><label for="titleOutput">생성된 제목</label><span>제목란에 사용</span></div>
+        <textarea id="titleOutput" class="result-box" readonly></textarea>
+
+        <div class="result-label"><label for="bodyOutput">생성된 본문</label><span>제출 전 직접 검토</span></div>
+        <textarea id="bodyOutput" class="result-box body" readonly></textarea>
+
+        <div class="copy-actions">
+          <button type="button" id="copyTitle" class="secondary">제목 복사</button>
+          <button type="button" id="copyBody" class="secondary">본문 복사</button>
+          <button type="button" id="copyAll" class="full">제목+본문 전체 복사</button>
+        </div>
+
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+        <textarea id="copyBuffer" class="copy-buffer" aria-hidden="true" tabindex="-1" readonly></textarea>
+
+        <div class="portal-box">
+          <p id="portalDesc">국민신문고로 이동해 제목·본문을 붙여넣고 최종 제출 여부를 판단해 주세요.</p>
+          <a id="portalLink" class="link-button" href="https://www.epeople.go.kr/" target="_blank" rel="noopener noreferrer">국민신문고 바로가기</a>
+        </div>
+      </section>
+      </div><!-- /#sub-minwon -->
+
+      <!-- 2) 항의 문자 하위 화면 -->
+      <div id="sub-sms" class="subpanel" role="tabpanel" hidden>
+      <section id="sec-sms" class="card">
+        <h2>📱 항의 문자 발송하기</h2>
+        <p class="sub">① 수신인과 ② 어조를 고르면 문자 초안이 만들어집니다. 전송 버튼을 누르면 본인 휴대폰 문자 앱이 열립니다.</p>
+
+        <div class="field">
+          <div id="rcptLabel" class="field-title">① 문자 수신인 선택</div>
+          <div id="rcptGroups"></div>
+        </div>
+
+        <div class="field">
+          <label for="smsTone">② 어조 선택</label>
+          <select id="smsTone"></select>
+        </div>
+
+        <div class="actions sms-row">
+          <a id="smsSend1" class="link-button secondary" href="#">📩 1차 전송</a>
+          <a id="smsSend2" class="link-button" href="#">📩 2차 전송</a>
+        </div>
+
+        <div class="sms-two sms-row">
+          <div class="sms-preview">
+            <div class="sms-preview-title"><span>1차 본문 미리보기</span><span id="smsCount1" class="sms-count">0자</span></div>
+            <p id="smsPreview1" class="sms-text"></p>
+          </div>
+          <div class="sms-preview">
+            <div class="sms-preview-title"><span>2차 본문 미리보기</span><span id="smsCount2" class="sms-count">0자</span></div>
+            <p id="smsPreview2" class="sms-text"></p>
+          </div>
+        </div>
+
+        <p class="sms-note">⚠️ 자동 발송이 아닙니다. 버튼을 누르면 본인 휴대폰 문자 앱이 열리며, 실제 전송은 본인이 직접 확인해야 합니다. 공식적으로 공표된 연락처만 사용하고, 반복·대량 발송은 삼가 주세요.</p>
+      </section>
+      </div><!-- /#sub-sms -->
+    </section>
+
+    <!-- ============ 탭 2: 처음이신가요? (안내) ============ -->
+    <section id="tab-guide" class="tabpanel" role="tabpanel" hidden>
+      <section class="card guide">
+        <h2 class="guide-title">📖 민원 접수 방법 &amp; 꿀팁</h2>
+        <p class="guide-lead">국민신문고가 처음이신 분을 위한 단계별 안내입니다. 아래 순서대로만 하시면 됩니다.</p>
+
+        <div class="guide-sub">📄 민원 접수 순서</div>
+        <ol class="steps">
+          <li><span class="step-no">1</span><div><b>국민신문고 회원가입 및 로그인</b><p>본인인증(카카오·PASS 등)이 필요합니다.</p></div></li>
+          <li><span class="step-no">2</span><div><b>‘민원 접수 시작하기’에서 기관 선택 후 <span class="kbd">제목 생성</span>·<span class="kbd">본문 생성</span></b><p>기관을 바꾸면 문구가 자동으로 그 기관에 맞게 바뀝니다.</p></div></li>
+          <li><span class="step-no">3</span><div><b><span class="kbd">제목 복사</span>·<span class="kbd">본문 복사</span>로 내용 복사</b><p>필요하면 ‘추가 피해 내용’을 본인 상황에 맞게 적어 넣으세요.</p></div></li>
+          <li><span class="step-no">4</span><div><b>국민신문고 → 일반민원 → 수신기관에 기관명 입력 후 붙여넣기</b><p>수신기관 검색창에 기관명(예: 과천시청)을 넣고, 제목·본문을 붙여넣습니다.</p></div></li>
+          <li><span class="step-no">5</span><div><b>접수 완료! → 다른 기관 선택 후 반복</b><p>임시저장 기능을 쓰면 여러 기관에 빠르게 접수할 수 있습니다(아래 꿀팁).</p></div></li>
+        </ol>
+
+        <div class="guide-sub">⚡ 여러 건 빠르게 접수하는 임시저장 꿀팁</div>
+        <ol class="steps alt">
+          <li><span class="step-no">1</span><div><b>민원 내용을 붙여넣은 뒤, 국민신문고 페이지 맨 아래 <span class="kbd">임시저장</span> → <span class="kbd">홈화면 바로가기</span></b></div></li>
+          <li><span class="step-no">2</span><div><b>홈에서 <span class="kbd">일반민원</span> 다시 클릭 → 개인정보 입력</b></div></li>
+          <li><span class="step-no">3</span><div><b>우측 <span class="kbd">불러오기</span> 클릭 → 직전 임시저장 내용 자동 로드</b></div></li>
+          <li><span class="step-no">4</span><div><b>제목·본문만 새로 교체 후 접수 → 반복!</b></div></li>
+        </ol>
+
+        <div class="tips">
+          <div class="tip"><span class="tip-badge">TIP 1</span><div><b>민원 공개 설정.</b> 작성 페이지 하단에서 ‘공개’로 설정하면 더 널리 공유됩니다. 단, 공개글에는 개인정보를 넣지 마세요.</div></div>
+          <div class="tip"><span class="tip-badge">TIP 2</span><div><b>주소 미리 등록.</b> 국민신문고 ‘내 정보’에서 거주지 주소를 미리 등록해두면 매번 입력할 필요가 없습니다.</div></div>
+          <div class="tip"><span class="tip-badge">TIP 3</span><div><b>정중하게.</b> 허위·모욕·비방 표현은 피하고, 사실과 의견을 예의 있게 적어야 민원이 제대로 검토됩니다.</div></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- 주의 -->
+    <section class="caution">
+      <h2>이용 시 주의사항</h2>
+      <ul>
+        <li>이 페이지는 민원 문구 작성을 돕는 정적 웹페이지이며, 자동 제출·본인인증·CAPTCHA 우회 기능을 제공하지 않습니다.</li>
+        <li>허위사실·모욕·특정인 비방은 피하고, 본인이 확인한 사실과 의견을 정중하게 작성해 주세요.</li>
+        <li>이름·주민번호·전화번호·상세 주소 등 개인정보는 입력하지 않는 것을 권합니다.</li>
+        <li>문자 기능의 수신번호는 <b>공식적으로 공표된 연락처만</b> 사용하고, 개인 휴대폰으로 다수가 반복 발송하는 것은 괴롭힘이 될 수 있으니 정중한 어조와 상식적 횟수를 지켜 주세요.</li>
+        <li>법령 인용은 참고용입니다. 제출 전 최신 법령과 실제 인허가 쟁점을 직접 확인해 주세요.</li>
+      </ul>
+    </section>
+
+    <footer>사용자의 브라우저 안에서만 동작하는 단일 HTML 파일입니다. · 자동화 접수에 사용하지 마세요.</footer>
+  </main>
+
+  <script>
+  /* =========================================================================
+     ★ 편집 안내 (왕초보용) ★
+     - 민원 문구를 바꾸려면 아래 PURPOSES / AGENCIES 안의 "따옴표 속 문장"만 고치세요.
+     - 문자 수신인(항의문자)을 바꾸려면 아래 SMS_GROUPS 의 name / phone 을 고치세요.
+         예)  { name: "홍길동 시장", phone: "01012345678" }
+       ※ 지금 번호는 테스트용(모두 동일)입니다. 실제 배포 전 확인된 번호로 교체하세요.
+       ※ 검증되지 않은 번호는 절대 넣지 마세요(엉뚱한 사람에게 문자가 갈 수 있습니다).
+     ========================================================================= */
+
+  const PURPOSES = {
+    stop: {
+      title: "재산권을 침해하는 부당한 절차 지연 중단 및 조속·공정 처리 요청",
+      intro: "본 민원의 취지는 데이터센터 건립을 무조건 관철해 달라는 것이 아니라, 이미 정해진 법령과 공표된 기준에 따라 예측 가능하고 공정하게 처리하여 정당한 재산권 행사가 침해되지 않도록 해 달라는 것입니다.",
+      focus: "행정절차의 부당한 지연은 단순한 일정 문제가 아니라 부동산 가치, 분양·입주 일정, 사업계획, 금융비용, 거래 가능성 등 실질적인 재산상 이익에 직접 영향을 줍니다.",
+      request: "관계 법령과 공표된 심사기준을 충족하는 사항에 대해서는 절차를 임의로 중단하거나 지연하지 말고, 기존 기준과 처리기한에 따라 조속히 처리하여 재산권 침해가 계속되지 않도록 해 주시기 바랍니다.",
+      sms: "기준 충족 사항의 부당한 지연을 멈추고 재산권 침해를 중단해 주십시오."
+    },
+    delay: {
+      title: "입증되지 않은 반대 민원에 따른 절차 지연 중단 요청",
+      intro: "본 민원은 근거 없는 우려나 검증되지 않은 정보가 반복 제기되어 법정 절차가 지연될 경우, 이해관계자의 재산상 이익이 침해된다는 점을 알리기 위한 것입니다.",
+      focus: "법령상 허용 가능한 건축·개발 절차가 입증되지 않은 주장만으로 사실상 제한된다면, 이는 재산권과 신뢰이익에 대한 실질적 침해에 해당합니다.",
+      request: "입증되지 않은 주장으로 인하여 법령상 가능한 절차가 부당하게 지연·제한되지 않도록, 재산권과 신뢰이익 침해 가능성을 함께 검토하여 지연 행위를 중단해 주시기 바랍니다.",
+      sms: "입증 없는 지연으로 재산권·신뢰이익이 침해되지 않게 해 주십시오."
+    },
+    basis: {
+      title: "데이터센터 관련 적용 법령 및 검토자료의 투명한 공개 요청",
+      intro: "본 민원은 행정 판단이 추상적 찬반이 아니라 객관적 자료와 법적 근거에 따라 이루어져야 한다는 취지입니다.",
+      focus: "어떤 법령·조례·지구단위계획·고시·심사기준에 따라 검토하는지 명확히 안내될수록 불필요한 갈등과 재산권 침해 논란을 줄일 수 있습니다.",
+      request: "관련 절차의 적용 법령, 처분기준, 검토자료, 보완 요구사항, 관계기관 협의 경과를 가능한 범위에서 공개 또는 안내해 주시기 바랍니다.",
+      sms: "적용 법령과 검토자료, 보완 요구사항을 투명하게 안내해 주십시오."
+    },
+    balance: {
+      title: "이해관계자 의견의 균형 있는 반영 요청",
+      intro: "본 민원은 의견수렴 자체를 부정하는 것이 아니라, 그 결과가 객관적 사실과 법령상 기준에 맞게 균형 있게 반영되어야 한다는 취지입니다.",
+      focus: "반대 의견뿐 아니라 재산권 침해와 절차 지연을 우려하는 이해관계자의 의견도 같은 비중으로 검토되어야 행정의 공정성이 확보됩니다.",
+      request: "찬반 민원의 수량만을 기준으로 판단하지 말고, 각 의견의 사실관계, 입증자료, 법적 관련성, 이해관계의 정도를 함께 검토해 주시기 바랍니다.",
+      sms: "찬반 수량보다 사실관계와 법적 관련성을 균형 있게 봐 주십시오."
+    },
+    comprehensive: {
+      title: "안전·환경 쟁점의 종합 검토 후 조속 처리 요청",
+      intro: "본 민원은 안전·환경·교통 쟁점을 무시해 달라는 것이 아니라, 이를 법령상 기준과 전문자료에 따라 검토한 뒤 절차를 조속히 진행해 달라는 취지입니다.",
+      focus: "법령상 기준을 충족하는 신청이 민원 압력만으로 장기 지연된다면 행정의 예측 가능성과 신뢰보호 원칙이 훼손되고 재산가치에도 부정적 영향이 발생합니다.",
+      request: "필요한 검토는 진행하되, 검토가 완료된 사항에 대해서는 기존 법령과 기준에 따라 지체 없이 다음 절차가 진행되도록 조치해 주시기 바랍니다.",
+      sms: "필요 검토 후 기준 충족 사항은 지체 없이 진행해 주십시오."
+    }
+  };
+
+  const AGENCIES = {
+    "과천시청": {
+      badge: "추천", rec: true, note: "선택됨",
+      portal: { name: "국민신문고", url: "https://www.epeople.go.kr/" },
+      role: "과천시청은 건축허가권자·개발행위허가권자 또는 관계 행정기관으로서 데이터센터 관련 건축·개발행위가 건축법, 국토계획법, 조례, 지구단위계획, 공표된 심사기준에 부합하는지 판단해야 하는 기관입니다.",
+      basis: [
+        "「건축법」 제11조: 건축·대수선은 허가 대상이므로 허가는 법령상 요건 충족 여부를 기준으로 판단되어야 합니다.",
+        "「국토의 계획 및 이용에 관한 법률」 제56조·제57조: 개발행위는 신청서와 관련 계획을 토대로 법정 절차에 따라 처리되어야 합니다.",
+        "「행정절차법」 제20조: 처분기준은 구체적으로 정하여 공표되어야 하며, 판단은 공표된 기준에 따라 이루어져야 합니다.",
+        "「헌법」 제23조 및 「행정기본법」상 법치행정·비례·신뢰보호 원칙: 재산권 제한은 법률상 근거와 공익상 필요에 기초해야 하며 필요한 범위를 넘어서는 안 됩니다."
+      ],
+      opening: "과천시청은 현장에서 실제 인허가·개발행위 검토를 담당하거나 관계기관 협의를 종합하는 위치에 있으므로, 데이터센터 관련 쟁점을 추상적 찬반이 아니라 법정 기준 충족 여부로 판단해 주시기 바랍니다.",
+      reasoning: "전자파, 소음, 화재, 교통, 경관, 환경 등 우려 항목은 각 기준에 따라 시뮬레이션·전문기관 검토·필요 시 실측 또는 사후 점검 조건으로 확인할 수 있습니다. 검토 결과 기준을 충족하거나 관리 가능한 수준이라면, 막연한 불안만으로 절차를 중단하기보다 정해진 절차를 진행하는 것이 타당합니다.",
+      balance: "주민 우려를 설명·확인하는 절차는 필요하지만, 입증되지 않은 반복 민원으로 토지·건축·입주 이해관계자의 재산권과 신뢰이익이 과도하게 제한되어서는 안 됩니다.",
+      requests: [
+        "과천시 소관 인허가·협의 절차에 적용되는 법령·조례·지구단위계획·심사기준을 명확히 제시해 주시기 바랍니다.",
+        "항목별 우려는 전문자료·시뮬레이션·실측 또는 조건부 관리 방안으로 검토하고 기준 충족 여부를 중심으로 판단해 주시기 바랍니다.",
+        "보완이 필요한 사항은 구체적 근거와 범위를 제시하되, 기준을 충족한 사항은 지체 없이 다음 절차로 진행해 주시기 바랍니다.",
+        "반대 민원의 수량이 아니라 사실관계·입증자료·법적 관련성·재산권 침해 가능성을 함께 검토해 주시기 바랍니다."
+      ]
+    },
+    "경기도청": {
+      badge: "광역", rec: false, note: "탭하면 선택",
+      portal: { name: "경기도 민원", url: "https://www.gg.go.kr/" },
+      role: "경기도청은 광역 지방자치단체로서 도시·군관리계획, 광역 조정, 도 승인·협의, 시·군 행정의 적정성 관리와 관련된 범위에서 법정 기준이 일관되게 집행되도록 살펴야 하는 기관입니다.",
+      basis: [
+        "「국토의 계획 및 이용에 관한 법률」상 계획·개발행위허가 체계는 용도지역·기반시설·위해방지·환경오염 방지·경관 등 객관적 기준을 전제로 합니다.",
+        "「행정절차법」 제20조와 「행정기본법」상 법치행정·비례·신뢰보호 원칙은 광역 차원의 협의·승인·조정에서도 동일하게 존중되어야 합니다.",
+        "「헌법」 제23조: 입증되지 않은 민원만으로 소유자·입주예정자의 재산상 신뢰이익이 과도하게 제한되어서는 안 됩니다."
+      ],
+      opening: "경기도청은 과천시와 관계기관 협의가 일관된 기준에 따라 이루어지는지 살필 수 있는 위치에 있습니다. 절차가 지역별 민원 압력에 따라 달라지지 않고 법령과 공표된 기준에 따라 예측 가능하게 운영되도록 관리해 주시기 바랍니다.",
+      reasoning: "전력·환경·교통·안전 등 광역적 검토가 필요한 항목은 객관적 자료와 전문 검토 결과를 기준으로 판단되어야 합니다. 시뮬레이션과 필요한 실측 결과 기준을 충족한다면, 검증되지 않은 우려만으로 협의·승인이 장기 지연되어서는 안 됩니다.",
+      balance: "광역 행정은 갈등을 조정하는 역할도 있으므로, 반대 의견뿐 아니라 절차 지연으로 재산가치·신뢰이익에 영향을 받는 이해관계자의 의견도 함께 반영되어야 합니다.",
+      requests: [
+        "도 차원의 승인·협의·조정에 적용되는 법령·계획 기준·협의 기준을 명확히 안내해 주시기 바랍니다.",
+        "검증 가능한 우려는 전문기관 검토·시뮬레이션·실측으로 판단하고, 기준 충족 시 절차가 진행되도록 일관된 기준을 제시해 주시기 바랍니다.",
+        "관계기관 절차가 입증되지 않은 민원 압력만으로 지연되지 않도록 사실관계·법적 근거 중심으로 점검해 주시기 바랍니다.",
+        "재산권·신뢰보호 측면의 피해 가능성도 광역 조정 과정에서 함께 고려해 주시기 바랍니다."
+      ]
+    },
+    "국토교통부": {
+      badge: "중앙", rec: true, note: "탭하면 선택",
+      portal: { name: "국민신문고", url: "https://www.epeople.go.kr/" },
+      role: "국토교통부는 건축법·국토계획법·건축물 용도체계 및 인허가 제도의 소관 중앙행정기관으로서 데이터센터 관련 법령 해석과 제도 운영 기준을 명확히 안내할 수 있는 기관입니다.",
+      basis: [
+        "「건축법」 제11조: 건축·대수선 허가 여부는 법령상 요건과 처분기준에 따라 판단되어야 합니다.",
+        "「건축법 시행령」 별표 1의 용도체계상 데이터센터는 방송통신시설의 세부 용도로 다루어질 수 있어, 시설 유형 자체만으로 금지된다고 보기 어렵습니다.",
+        "「국토의 계획 및 이용에 관한 법률」 제56조·제57조: 개발행위허가는 신청 내용과 관련 계획을 토대로 법정 기준에 따라 판단되어야 합니다.",
+        "「행정절차법」 제20조 및 「행정기본법」상 법치행정·비례·신뢰보호 원칙: 행정은 공표된 기준과 명확한 근거에 따라 처분하고 정당한 신뢰를 보호해야 합니다."
+      ],
+      opening: "국토교통부는 데이터센터가 법령상 검토 가능한 시설인지, 지자체가 어떤 기준으로 판단해야 하는지 명확한 원칙을 제시해 주시기 바랍니다.",
+      reasoning: "전자파·화재·소음·교통·환경 우려는 시설 명칭만으로 단정할 것이 아니라 건축·입지·구조·설비 기준과 전문 검토자료에 따라 판단해야 합니다. 항목별 검토로 기준 충족이 확인된다면 데이터센터라는 이유만으로 인허가가 사실상 제한되어서는 안 됩니다.",
+      balance: "중앙행정기관의 기준이 명확해야 지자체도 민원 수량이 아니라 법령상 요건과 처분기준에 따라 일관되게 판단할 수 있습니다.",
+      requests: [
+        "데이터센터 관련 건축물 용도·개발행위허가·관계기관 협의에 적용할 법령상 기준과 해석 원칙을 명확히 안내해 주시기 바랍니다.",
+        "쟁점은 법령·기술기준·전문자료·시뮬레이션 및 실측 결과를 기준으로 판단해야 한다는 원칙을 관계기관에 안내해 주시기 바랍니다.",
+        "법령상 가능한 신청이 막연한 반대나 입증되지 않은 유해성 주장만으로 지연·제한되지 않도록 제도 운영 기준을 확인해 주시기 바랍니다.",
+        "필요한 보완은 구체적 근거와 함께 요구하되, 기준 충족 사항은 예측 가능한 일정 안에서 처리되도록 지도해 주시기 바랍니다."
+      ]
+    },
+    "기후에너지환경부": {
+      badge: "에너지", rec: false, note: "탭하면 선택",
+      portal: { name: "국민신문고", url: "https://www.epeople.go.kr/" },
+      role: "기후에너지환경부는 기후·에너지·환경 분야의 소관 중앙행정기관으로서, 전력 공급을 담당하는 한국전력공사의 상위 행정기관입니다. 데이터센터의 전력 수급, 환경 영향, 탄소·기후 정책, 관계기관 협의 기준을 객관적으로 검토·안내할 수 있는 기관입니다.",
+      basis: [
+        "환경·에너지·기후 쟁점은 막연한 우려가 아니라 소관 법령·전문기관 자료·영향 검토 결과·관계기관 협의 기준에 따라 판단되어야 합니다.",
+        "데이터센터의 전력 수급은 소관 및 산하 기관(한국전력공사 등)의 공급 계획과 기술기준에 따라 검토될 수 있는 사항이므로, 전력을 이유로 한 우려도 객관적 자료로 확인되어야 합니다.",
+        "「행정절차법」 제20조와 「행정기본법」상 법치행정·비례·신뢰보호 원칙은 중앙행정기관의 기준 안내·협의 과정에서도 일관되게 적용되어야 합니다.",
+        "「헌법」 제23조: 환경·에너지 쟁점 역시 확인 가능한 자료와 법적 기준에 따라 균형 있게 검토되어야 하며, 입증되지 않은 주장만으로 재산권이 제한되어서는 안 됩니다."
+      ],
+      opening: "기후에너지환경부는 데이터센터 관련 환경·에너지·전력 쟁점을 객관적 기준으로 검토하고, 산하 한국전력공사 등 관계기관에 일관된 기준을 안내할 수 있는 위치에 있습니다.",
+      reasoning: "전자파·소음·열·전력 사용·환경 영향 등은 감정적 찬반이 아니라 과학적 모델링·시뮬레이션·전문기관 검토·필요 시 실측을 통해 확인할 수 있습니다. 검토 결과 법령상 기준을 충족하고 관리 방안이 마련된다면, 환경·에너지 우려만을 포괄적으로 내세워 절차를 지연시키기보다 기준에 맞게 진행하는 것이 합리적입니다.",
+      balance: "기후·에너지·환경 쟁점은 공익적 검토가 필요하지만, 그 검토 역시 명확한 기준과 확인 가능한 자료에 근거해야 하며 재산권·신뢰보호 원칙을 함께 고려해야 합니다.",
+      requests: [
+        "데이터센터 관련 환경·에너지·전력 쟁점에 적용되는 소관 법령·기술기준·검토 기준을 명확히 안내해 주시기 바랍니다.",
+        "전자파·소음·열·전력·환경 영향 등 항목별 우려는 시뮬레이션과 실측 가능 자료를 기준으로 판단하도록 관계기관(한국전력공사 등)에 안내해 주시기 바랍니다.",
+        "기준을 충족하거나 관리 가능한 항목은 절차 진행이 가능함을 명확히 하고, 보완이 필요한 항목은 구체적 기준과 범위를 제시해 주시기 바랍니다.",
+        "입증되지 않은 환경·에너지 우려만으로 인허가 절차가 과도하게 지연되어 재산권이 침해되지 않도록 균형 있는 검토 기준을 마련해 주시기 바랍니다."
+      ]
+    },
+    "국민권익위원회": {
+      badge: "고충", rec: false, note: "탭하면 선택",
+      portal: { name: "국민신문고", url: "https://www.epeople.go.kr/" },
+      role: "국민권익위원회는 고충민원의 접수·조사·조정·의견표명 등을 통해 행정기관의 위법·부당하거나 소극적인 처분으로 인한 국민의 불편과 권익 침해를 살필 수 있는 기관입니다.",
+      basis: [
+        "「부패방지 및 국민권익위원회의 설치와 운영에 관한 법률」 제39조: 누구든지 고충민원을 신청할 수 있습니다.",
+        "「민원 처리에 관한 법률」 제5조: 민원인은 신속·공정·적법한 응답을 받을 권리가 있고, 다른 민원 처리를 지연시키는 등 공무를 방해해서는 안 됩니다.",
+        "「민원 처리에 관한 법률」 제23조: 동일 내용의 반복·중복 민원은 일정 요건하에 종결될 수 있으므로 반복 민원도 사실관계·법적 근거 중심으로 관리될 필요가 있습니다.",
+        "「헌법」 제23조 및 「행정기본법」상 원칙: 행정 지연·소극행정이 다른 이해관계자의 재산권·신뢰이익을 침해하지 않도록 해야 합니다."
+      ],
+      opening: "본 민원은 특정 주장을 무시해 달라는 것이 아니라, 입증되지 않은 반복 민원이나 막연한 불안이 법령상 가능한 절차를 사실상 멈추게 하는 상황이 있는지 살펴 달라는 취지입니다.",
+      reasoning: "전자파·소음·안전·환경 우려는 시뮬레이션·전문기관 검토·필요 시 실측으로 확인할 수 있는 영역입니다. 객관적 검증 결과 문제가 없거나 관리 가능한 수준이라면, 반복 민원만을 이유로 절차를 지연시키는 것은 다른 국민의 권익 침해로 이어질 수 있습니다.",
+      balance: "민원 처리 과정에서는 반대 민원인의 불안뿐 아니라 재산권 침해·절차 지연을 우려하는 이해관계자의 권익도 공정하게 고려되어야 합니다.",
+      requests: [
+        "관계 행정기관이 데이터센터 관련 민원을 사실관계와 법령상 기준에 따라 처리하고 있는지 확인해 주시기 바랍니다.",
+        "유사한 우려가 반복될 경우 단순 반복 여부가 아니라 검증 가능성·입증자료·법적 관련성을 기준으로 정리되도록 안내해 주시기 바랍니다.",
+        "기준을 충족한 사항까지 민원 압력으로 장기 지연되는 문제가 없는지 고충민원 관점에서 살펴 주시기 바랍니다.",
+        "절차 지연으로 인한 재산권·신뢰이익 침해 가능성도 함께 검토해 주시기 바랍니다."
+      ]
+    },
+    "서초구청": {
+      badge: "인접", rec: false, note: "탭하면 선택",
+      portal: { name: "국민신문고", url: "https://www.epeople.go.kr/" },
+      role: "서초구청은 인접 지방자치단체 또는 관계 행정기관으로서 교통·환경·안전·생활권 영향 등이 서초구 관할 사항과 연결되는 경우 해당 범위에서 의견 제시와 협의를 수행할 수 있는 기관입니다.",
+      basis: [
+        "「지방자치법」상 지자체는 관할 구역의 주민 복리와 지역 사무를 처리하므로, 생활권·교통·환경 영향이 관할과 연결될 때 관계기관 협의가 필요할 수 있습니다.",
+        "「행정절차법」 제20조 및 「행정기본법」상 원칙은 관계기관 의견 제시에서도 객관적 기준과 사실관계에 따른 판단을 요구합니다.",
+        "「헌법」 제23조: 인접 지역 우려가 제기되더라도 법령상 근거·객관적 자료 없이 다른 이해관계자의 재산권 행사를 과도하게 제한해서는 안 됩니다."
+      ],
+      opening: "서초구청의 의견은 관할 범위와 객관적 자료에 근거해야 하며, 막연한 우려가 과천 지역 인허가 절차 전체를 지연시키는 근거가 되어서는 안 됩니다.",
+      reasoning: "관할과 관련될 수 있는 교통량·소음·환경·안전 우려는 예측 모델·시뮬레이션·전문 검토·필요 시 실측으로 확인할 수 있습니다. 기준을 초과하지 않거나 관리 방안으로 해결 가능하다면 협의도 그 결과에 맞게 정리되어야 합니다.",
+      balance: "인접 지역 우려 검토는 필요하지만, 관할 범위를 넘어 확인되지 않은 주장으로 다른 지역 이해관계자의 재산권과 절차의 예측 가능성을 침해해서는 안 됩니다.",
+      requests: [
+        "서초구 관할과 직접 관련되는 쟁점과 그렇지 않은 쟁점을 구분하여 의견을 제시해 주시기 바랍니다.",
+        "교통·소음·환경·안전 우려는 객관적 자료와 시뮬레이션·실측 결과를 기준으로 검토해 주시기 바랍니다.",
+        "기준을 충족하거나 관리 가능한 사항은 협의가 불필요하게 지연되지 않도록 명확히 회신해 주시기 바랍니다.",
+        "의견 제시 과정에서도 재산권 제한은 법적 근거와 비례성에 따라야 한다는 점을 고려해 주시기 바랍니다."
+      ]
+    },
+    "한국토지주택공사": {
+      badge: "공공", rec: false, note: "탭하면 선택",
+      portal: { name: "LH 고객센터", url: "https://www.lh.or.kr/" },
+      role: "한국토지주택공사(LH)는 공공 토지·주택·도시개발 사업과 관련된 공공기관으로서, 사업지·기반시설·입주 계획과 연결되는 범위에서 이해관계자에게 필요한 자료와 절차를 안내할 수 있는 기관입니다.",
+      basis: [
+        "공공기관의 사업 추진과 토지·주택 공급 과정에서는 공표된 계획·계약 관계·공급 조건·기반시설 계획 등 객관적 자료에 근거한 설명이 중요합니다.",
+        "「공공기관의 운영에 관한 법률」상 공공기관은 공공성·책임성을 바탕으로 업무를 수행하고 이해관계자의 신뢰와 예측 가능성을 해치지 않아야 합니다.",
+        "「헌법」 제23조 및 신뢰보호 원칙의 취지상, 공공사업 관련 지연·불확실성이 재산상 이해관계에 미치는 영향도 함께 검토되어야 합니다."
+      ],
+      opening: "LH는 사업지·기반시설·공급 일정·입주 또는 분양 관련 이해관계에 영향을 줄 수 있는 정보를 명확히 안내할 필요가 있습니다. 데이터센터 관련 논의도 공공사업의 예측 가능성과 신뢰보호 관점에서 검토되어야 합니다.",
+      reasoning: "전력·소음·안전·환경 우려는 공급계획을 불확실하게 만드는 방식이 아니라 전문자료·시뮬레이션·필요 시 실측 결과로 확인되어야 합니다. 기준을 충족하는 것으로 확인된다면 관련 사업과 절차가 계속 진행되도록 관계기관 협의가 이루어져야 합니다.",
+      balance: "공공기관의 설명이 불명확하면 입주예정자·수분양자·소유자 등 이해관계자의 재산상 판단이 어려워집니다.",
+      requests: [
+        "데이터센터 이슈가 LH 소관 사업·공급 일정·기반시설·입주 또는 분양에 미치는 영향을 가능한 범위에서 명확히 안내해 주시기 바랍니다.",
+        "우려 항목은 객관적 검토자료·시뮬레이션·실측 가능성·관계기관 협의 결과를 기준으로 정리해 주시기 바랍니다.",
+        "기준을 충족하는 사항은 공공사업의 예측 가능성을 해치지 않도록 조속히 관계기관과 협의해 주시기 바랍니다.",
+        "절차 지연으로 인한 재산상 불이익·신뢰이익 침해 가능성도 함께 고려해 주시기 바랍니다."
+      ]
+    },
+    "기타 관계 행정기관": {
+      badge: "기타", rec: false, note: "탭하면 선택",
+      portal: { name: "국민신문고", url: "https://www.epeople.go.kr/" },
+      role: "귀 기관은 전력·소방·환경·교통·정보통신·도시계획 등 개별 소관 분야에서 데이터센터 관련 협의·심사·검토를 수행할 수 있는 관계 행정기관입니다.",
+      basis: [
+        "각 소관 법령과 공표된 심사기준은 해당 분야의 안전성·적정성·환경성·기술기준 충족 여부를 판단하기 위한 기준입니다.",
+        "「행정절차법」 제20조: 처분기준은 구체적으로 공표되어야 하며 판단은 그 기준에 맞아야 합니다.",
+        "「행정기본법」상 법치행정·비례·신뢰보호 원칙: 행정작용은 법령상 근거와 필요한 범위 안에서 이루어져야 합니다.",
+        "「헌법」 제23조: 재산권 제한은 법률상 근거·공익상 필요에 기초해야 하며 입증되지 않은 주장만으로 절차가 지연되어서는 안 됩니다."
+      ],
+      opening: "소관 의견은 민원 분위기가 아니라 법령·고시·기술기준·공표된 심사기준에 근거해 제시되어야 합니다.",
+      reasoning: "항목별 우려는 시뮬레이션·전문기관 검토·필요 시 실측 또는 사후관리 조건으로 확인할 수 있습니다. 기준을 충족하거나 관리 가능한 사항은 전체 절차 지연의 사유가 되어서는 안 됩니다.",
+      balance: "관계기관 협의가 지연되면 행정절차 전체가 멈추고 이해관계자의 재산권·신뢰이익이 침해될 수 있으므로 필요한 보완과 처리 가능한 사항을 구분해 주시기 바랍니다.",
+      requests: [
+        "소관 분야에 적용되는 법령·고시·기술기준·심사기준을 기준으로 검토해 주시기 바랍니다.",
+        "우려 항목은 확인 가능한 자료와 시뮬레이션·실측 결과를 중심으로 판단해 주시기 바랍니다.",
+        "보완이 필요한 사항은 구체적 근거와 범위를 제시하고, 기준을 충족한 사항은 지체 없이 회신해 주시기 바랍니다.",
+        "협의가 입증되지 않은 반복 민원으로 장기 지연되지 않도록 협조해 주시기 바랍니다."
+      ]
+    }
+  };
+
+  /* 문자 수신인 그룹
+     ※ 지금은 테스트 단계라 번호가 모두 동일합니다. 실제 배포 전 확인된 번호로 교체하세요. */
+  const SMS_GROUPS = [
+    {
+      title: "1. 과천시청 및 국회 관계자",
+      recipients: [
+        { name: "신계용 과천시장", phone: "01012341234" },
+        { name: "이소영 국회의원", phone: "01012341234" }
+      ]
+    },
+    {
+      title: "2. 서초구청 및 국회 관계자",
+      recipients: [
+        { name: "전성수 서초구청장", phone: "01012341234" },
+        { name: "신동욱 국회의원", phone: "01012341234" }
+      ]
+    }
+  ];
+
+  /* 어조별 · 수신인별 문자 문구
+     - 1차(first)에만 수신인 이름 포함 / 2차(second)에는 이름 미포함
+     - 각 문구는 SMS 220자 이내
+     - messages 의 키는 SMS_GROUPS 의 수신인 name 과 정확히 일치해야 합니다 */
+  const SMS_TONES = [
+    {
+      name: "균형 검토형",
+      messages: {
+        "신계용 과천시장": {
+          first: "신계용 과천시장님, 과천 주민으로서 호소합니다.\n데이터센터 우려는 존중하되, 검증되지 않은 주장만으로 절차가 지연되면 입주민과 소유자의 재산권이 침해됩니다. 법령과 기준에 따라 균형 있게 판단해 주십시오.",
+          second: "반대 민원의 수량보다 사실관계, 입증자료, 법적 기준이 중요합니다.\n전자파·소음·교통·안전 쟁점은 전문 검토로 확인하고, 기준을 충족한 사항은 조속히 처리해 주십시오."
+        },
+        "이소영 국회의원": {
+          first: "이소영 국회의원님, 지역 이해관계자로서 요청드립니다.\n데이터센터 반대 의견도 살펴야 하지만, 절차 지연으로 인한 재산권 침해 우려도 함께 봐야 합니다. 찬반이 아니라 사실과 법 기준 중심으로 살펴 주십시오.",
+          second: "검증되지 않은 우려가 반복되면 합법적 절차도 사실상 멈출 수 있습니다.\n입주예정자와 소유자의 재산권, 신뢰이익도 보호받아야 하므로 균형 있는 검토를 요청드립니다."
+        },
+        "전성수 서초구청장": {
+          first: "전성수 서초구청장님, 인접 생활권 주민으로서 요청드립니다.\n서초구의 우려 제시는 필요하지만, 관할 범위와 객관 자료를 넘어 과천 절차가 지연되어서는 안 됩니다. 사실과 기준에 따른 의견을 부탁드립니다.",
+          second: "교통·소음·환경 우려는 추정이 아니라 시뮬레이션, 실측, 전문 검토로 판단해야 합니다.\n기준을 충족하거나 관리 가능한 사항은 협의 지연 사유가 되지 않도록 해 주십시오."
+        },
+        "신동욱 국회의원": {
+          first: "신동욱 국회의원님, 인접 지역 이해관계자로서 요청드립니다.\n주민 우려는 존중되어야 하나, 입증되지 않은 주장만으로 데이터센터 절차가 지연되면 다른 주민의 재산권도 침해됩니다. 균형 있게 살펴 주십시오.",
+          second: "전자파·소음·안전 우려는 객관 자료로 검증해야 합니다.\n문제가 확인되면 보완하고, 기준을 충족하면 법령과 절차에 따라 조속히 진행되도록 살펴 주십시오."
+        }
+      }
+    },
+    {
+      name: "차분한 요청형",
+      messages: {
+        "신계용 과천시장": {
+          first: "신계용 과천시장님, 과천 입주예정자로서 부탁드립니다.\n데이터센터 관련 불안은 이해하지만, 입증되지 않은 반대 민원으로 절차가 늦어지면 재산가치와 입주 계획에 피해가 생길 수 있습니다. 조속한 처리를 요청드립니다.",
+          second: "관계 법령과 심사기준을 충족하는 사항은 지체 없이 진행되어야 합니다.\n필요한 보완은 구체적으로 안내하되, 막연한 우려만으로 행정절차가 멈추지 않도록 해 주십시오."
+        },
+        "이소영 국회의원": {
+          first: "이소영 국회의원님, 과천 생활권 주민으로서 부탁드립니다.\n데이터센터 우려는 객관적으로 검토하되, 절차 지연이 주민 재산권과 신뢰이익을 해치지 않도록 살펴 주십시오. 정쟁보다 기준 있는 판단이 필요합니다.",
+          second: "주민 불안을 해소하려면 중단보다 검증과 설명이 필요합니다.\n전자파·환경·교통 쟁점은 전문자료로 확인하고, 기준 충족 시 절차가 정상 진행되도록 관심 부탁드립니다."
+        },
+        "전성수 서초구청장": {
+          first: "전성수 서초구청장님, 인접 생활권 이해관계자로서 부탁드립니다.\n서초구의 의견이 과천 절차에 영향을 줄 수 있는 만큼, 확인된 자료와 관할 범위 안에서 신중히 의견을 제시해 주시기 바랍니다.",
+          second: "막연한 우려가 장기화되면 과천 주민과 입주예정자의 재산권 피해로 이어질 수 있습니다.\n교통·소음·환경 쟁점은 객관 자료로 확인하고, 과도한 지연은 막아 주십시오."
+        },
+        "신동욱 국회의원": {
+          first: "신동욱 국회의원님, 인접 생활권 주민으로서 부탁드립니다.\n데이터센터 관련 우려는 검토되어야 하지만, 확인되지 않은 주장만으로 절차가 지연되면 재산권 피해가 커집니다. 객관적 검토를 요청드립니다.",
+          second: "주민 우려와 재산권 보호는 함께 고려되어야 합니다.\n전문 검토 결과 기준을 충족한다면, 기존 법령과 절차에 따라 조속히 처리되도록 살펴 주십시오."
+        }
+      }
+    },
+    {
+      name: "원칙 강조형",
+      messages: {
+        "신계용 과천시장": {
+          first: "신계용 과천시장님, 과천 재산권 이해관계자로서 요청드립니다.\n인허가는 여론의 크기가 아니라 법령, 조례, 지구단위계획, 심사기준에 따라 판단되어야 합니다. 기준 충족 시 조속히 처리해 주십시오.",
+          second: "행정절차가 검증되지 않은 주장으로 지연되면 예측 가능성과 신뢰보호 원칙이 훼손됩니다.\n보완이 필요하면 근거를 명확히 제시하고, 기준을 충족한 부분은 지체 없이 진행해 주십시오."
+        },
+        "이소영 국회의원": {
+          first: "이소영 국회의원님, 지역 재산권 이해관계자로서 요청드립니다.\n데이터센터 사안은 찬반 구호가 아니라 법령과 기준의 문제입니다. 입증 없는 반대 민원만으로 합법 절차가 지연되지 않도록 살펴 주십시오.",
+          second: "정해진 기준을 충족한 신청이 민원 압력으로 지연되면 다른 주민의 재산권과 신뢰이익이 침해됩니다.\n국회 차원에서도 법치행정과 비례 원칙이 지켜지도록 관심 부탁드립니다."
+        },
+        "전성수 서초구청장": {
+          first: "전성수 서초구청장님, 인접 지역 이해관계자로서 요청드립니다.\n관계기관 의견은 관할 범위와 객관 자료에 근거해야 합니다. 확인되지 않은 우려가 과천 인허가 절차를 지연시키지 않도록 해 주십시오.",
+          second: "행정 협의는 법령과 기준에 따라 이루어져야 합니다.\n교통·소음·환경 등 쟁점은 전문 검토로 판단하고, 기준을 충족한 사항은 협의 지연 없이 정리해 주십시오."
+        },
+        "신동욱 국회의원": {
+          first: "신동욱 국회의원님, 인접 생활권 이해관계자로서 요청드립니다.\n공공 현안일수록 원칙이 중요합니다. 데이터센터 우려는 검증하되, 입증 없는 주장만으로 재산권이 제한되지 않도록 살펴 주십시오.",
+          second: "절차 지연은 단순한 일정 문제가 아니라 재산가치와 신뢰이익의 문제입니다.\n쟁점은 자료로 검증하고, 기준을 충족하면 법령에 따라 조속히 진행되도록 요청드립니다."
+        }
+      }
+    },
+    {
+      name: "검증 요청형",
+      messages: {
+        "신계용 과천시장": {
+          first: "신계용 과천시장님, 과천 주민으로서 검증을 요청드립니다.\n전자파·소음·교통·안전 우려는 추정이 아니라 전문자료와 실측 가능성으로 판단해야 합니다. 기준 충족 시 절차를 조속히 진행해 주십시오.",
+          second: "검증되지 않은 반대 민원이 반복되면 재산권 침해가 현실화될 수 있습니다.\n우려 항목별로 자료, 기준, 보완 필요성을 명확히 공개하고 확인된 사항은 신속히 처리해 주십시오."
+        },
+        "이소영 국회의원": {
+          first: "이소영 국회의원님, 지역 이해관계자로서 검증을 요청드립니다.\n데이터센터 우려는 정치적 구호가 아니라 자료로 확인해야 합니다. 입증되지 않은 주장 때문에 절차가 지연되지 않도록 살펴 주십시오.",
+          second: "전자파·화재·환경·교통 쟁점은 전문기관 검토와 객관 자료로 판단해야 합니다.\n문제가 있으면 보완하고, 기준을 충족하면 절차가 진행되도록 균형 있게 봐 주십시오."
+        },
+        "전성수 서초구청장": {
+          first: "전성수 서초구청장님, 인접 생활권 주민으로서 검증을 요청드립니다.\n서초구가 제기하는 우려는 관할 범위와 객관 자료에 근거해야 합니다. 확인되지 않은 주장으로 절차가 지연되지 않게 해 주십시오.",
+          second: "교통·소음·환경 영향은 예측 모델, 시뮬레이션, 필요 시 실측으로 검토해야 합니다.\n검증 결과 기준을 충족한다면 관계기관 협의도 조속히 정리해 주십시오."
+        },
+        "신동욱 국회의원": {
+          first: "신동욱 국회의원님, 인접 지역 이해관계자로서 검증을 요청드립니다.\n데이터센터 관련 우려는 객관 자료로 확인해야 합니다. 입증 없는 주장만으로 과천 주민의 재산권이 침해되지 않도록 살펴 주십시오.",
+          second: "불안은 설명과 검증으로 해소해야지, 절차 지연으로 해결할 수 없습니다.\n전문 검토 결과 기준을 충족한 사항은 법령과 심사기준에 따라 조속히 진행되도록 요청드립니다."
+        }
+      }
+    }
+  ];
+
+  /* ===== 동작 로직 ===== */
+  const $ = (id) => document.getElementById(id);
+  const agencyEl = $("agency"), agencyGrid = $("agencyGrid");
+  const purposeEl = $("purpose"), stakeholderEl = $("stakeholder"), detailsEl = $("details");
+  const titleOutput = $("titleOutput"), bodyOutput = $("bodyOutput"), copyBuffer = $("copyBuffer");
+  const statusEl = $("status");
+  const smsPreview1 = $("smsPreview1"), smsPreview2 = $("smsPreview2");
+  const smsCount1 = $("smsCount1"), smsCount2 = $("smsCount2");
+  const rcptGroups = $("rcptGroups"), smsToneSel = $("smsTone"), smsSend1 = $("smsSend1"), smsSend2 = $("smsSend2");
+  const portalLink = $("portalLink"), portalDesc = $("portalDesc");
+
+  // 상위 탭 전환 (민원 접수 / 안내)
+  document.querySelectorAll(".tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.tab;
+      document.querySelectorAll(".tab").forEach((t) => {
+        const on = t === tab;
+        t.classList.toggle("is-active", on);
+        t.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      $("tab-apply").hidden = target !== "apply";
+      $("tab-guide").hidden = target !== "guide";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+
+  // 하위 탭 전환 (국민신문고 접수 / 항의문자 발송) — 화면 전체가 바뀜
+  document.querySelectorAll(".subtab").forEach((sub) => {
+    sub.addEventListener("click", () => {
+      const target = sub.dataset.sub;
+      document.querySelectorAll(".subtab").forEach((s) => {
+        const on = s === sub;
+        s.classList.toggle("is-active", on);
+        s.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      $("sub-minwon").hidden = target !== "minwon";
+      $("sub-sms").hidden = target !== "sms";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+
+  // 기관 카드 자동 생성
+  Object.entries(AGENCIES).forEach(([key, info], idx) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "agency-card" + (idx === 0 ? " is-selected" : "");
+    btn.dataset.agency = key;
+    btn.setAttribute("role", "option");
+    btn.setAttribute("aria-selected", idx === 0 ? "true" : "false");
+    btn.innerHTML =
+      `<span class="agency-card-top"><span class="agency-badge${info.rec ? " rec" : ""}">${info.badge}</span>` +
+      `<span class="agency-name">${key}</span></span>` +
+      `<span class="agency-card-note">${idx === 0 ? "선택됨" : info.note}</span>`;
+    btn.addEventListener("click", () => setAgency(key));
+    agencyGrid.appendChild(btn);
+  });
+
+  let smsToneIndex = getDailyToneIndex();
+  function getDailyToneIndex() {
+    const n = new Date();
+    return (n.getFullYear() * 10000 + (n.getMonth() + 1) * 100 + n.getDate()) % SMS_TONES.length;
+  }
+  function getState() {
+    return {
+      agencyKey: agencyEl.value,
+      agency: AGENCIES[agencyEl.value] || AGENCIES["기타 관계 행정기관"],
+      purpose: PURPOSES[purposeEl.value],
+      stakeholder: stakeholderEl.value,
+      details: detailsEl.value.trim()
+    };
+  }
+
+  function makeTitleText() {
+    const { agencyKey, purpose } = getState();
+    return `[${agencyKey}] 과천 지역 ${purpose.title}`;
+  }
+  function makeBodyText() {
+    const { agencyKey, agency, purpose, stakeholder, details } = getState();
+    const basisText = agency.basis.map((t, i) => `${i + 1}. ${t}`).join("\n");
+    const reqText = agency.requests.map((t, i) => `${i + 1}. ${t}`).join("\n");
+    const n = agency.requests.length;
+    const detailPara = details ? `\n\n아울러 다음 사정도 함께 고려해 주시기 바랍니다.\n${details}` : "";
+    return `${agencyKey} 담당자님께
+
+안녕하세요. 저는 과천 지역 데이터센터 건립 및 관련 행정절차의 진행 여부에 따라 재산상 이해관계에 영향을 받을 수 있는 ${stakeholder}입니다.
+
+본 민원은 데이터센터 건립에 대한 무조건적 찬성 또는 반대를 요청하는 것이 아닙니다. 데이터센터가 현행 법령상 건축물 용도와 인허가 체계 안에서 검토될 수 있는 시설인 만큼, 관계 행정기관이 이미 정해진 법령·고시·조례·지구단위계획·심사기준에 따라 객관적이고 예측 가능한 방식으로 절차를 처리하여, 정당한 재산권 행사가 부당하게 침해되지 않도록 해 달라는 취지입니다.
+
+${agency.opening}
+
+${purpose.intro}
+
+최근 데이터센터와 관련하여 전자파·소음·안전·환경·교통·전력·재산가치 하락 등 여러 우려가 항목별 민원으로 제기되는 것으로 알고 있습니다. 이러한 우려는 존중되어야 하지만, 행정 판단은 입증 가능한 사실과 객관적 기준에 따라 이루어져야 합니다.
+
+${purpose.focus}
+
+${agency.reasoning}
+
+${agency.balance}
+
+■ 관련 법적 근거 및 검토 기준
+${basisText}
+
+■ ${agencyKey}에 정중히 요청드리는 사항
+${reqText}
+${n + 1}. ${purpose.request}
+
+본 민원은 특정 주민·단체·행정기관·사업자를 비난하기 위한 것이 아닙니다. 공익상 검토가 필요한 사항은 충분히 검토하되, 행정 판단은 입증 가능한 사실과 명확한 법적 기준에 근거해야 한다는 점, 그리고 그 과정에서 정당한 재산권 침해가 계속되어서는 안 된다는 점을 요청드리는 것입니다.
+
+따라서 귀 기관에서는 관련 절차를 임의로 중단하거나 부당하게 지연시키기보다, 법령이 정한 기준과 처리 원칙에 따라 조속하고 공정하게 처리해 주시고, 처리 결과와 향후 절차를 구체적으로 안내해 주시기 바랍니다.${detailPara}
+
+감사합니다.`;
+  }
+
+  const smsHref = (phone, text) => `sms:${phone}?body=${encodeURIComponent(text)}`;
+  const dashPhone = (p) => p.replace(/(\d{2,3})(\d{3,4})(\d{4})/, "$1-$2-$3");
+
+  // 현재 선택된 수신인 (기본: 첫 번째)
+  let selectedRcpt = { name: SMS_GROUPS[0].recipients[0].name, phone: SMS_GROUPS[0].recipients[0].phone };
+
+  // ① 수신인 카드 렌더링 (처리기관 카드와 동일한 스타일 재사용)
+  function buildRcptCards() {
+    rcptGroups.innerHTML = "";
+    SMS_GROUPS.forEach((group) => {
+      const wrap = document.createElement("div");
+      wrap.className = "sms-group";
+      const cards = group.recipients.map((r) => {
+        const sel = r.name === selectedRcpt.name;
+        return `<button type="button" class="agency-card${sel ? " is-selected" : ""}" data-name="${r.name}" data-phone="${r.phone}">` +
+          `<span class="agency-card-top"><span class="agency-name">${r.name}</span></span>` +
+          `<span class="agency-card-note">${dashPhone(r.phone)}</span>` +
+        `</button>`;
+      }).join("");
+      wrap.innerHTML = `<div class="sms-group-title">📇 ${group.title}</div><div class="agency-grid">${cards}</div>`;
+      rcptGroups.appendChild(wrap);
+    });
+    rcptGroups.querySelectorAll(".agency-card").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedRcpt = { name: btn.dataset.name, phone: btn.dataset.phone };
+        rcptGroups.querySelectorAll(".agency-card").forEach((b) => b.classList.toggle("is-selected", b === btn));
+        renderSms();
+      });
+    });
+  }
+
+  // ② 어조 드롭다운 채우기
+  function buildToneSelect() {
+    smsToneSel.innerHTML = SMS_TONES.map((t, i) => `<option value="${i}">${t.name}</option>`).join("");
+    smsToneSel.value = String(smsToneIndex % SMS_TONES.length);
+  }
+
+  // ③ 선택된 수신인·어조 기준으로 미리보기 + 전송 버튼 갱신
+  function renderSms() {
+    const tone = SMS_TONES[Number(smsToneSel.value) % SMS_TONES.length];
+    const m = tone.messages[selectedRcpt.name] || { first: "", second: "" };
+    smsPreview1.textContent = m.first;
+    smsPreview2.textContent = m.second;
+    smsCount1.textContent = `${m.first.length}자`;
+    smsCount2.textContent = `${m.second.length}자`;
+    smsSend1.href = smsHref(selectedRcpt.phone, m.first);
+    smsSend2.href = smsHref(selectedRcpt.phone, m.second);
+  }
+
+  function refreshPortal() {
+    const { agency } = getState();
+    portalLink.textContent = `${agency.portal.name} 바로가기`;
+    portalLink.href = agency.portal.url;
+    portalDesc.textContent = `${agency.portal.name}(으)로 이동해 제목·본문을 붙여넣고 최종 제출 여부를 판단해 주세요.`;
+  }
+  function refreshAll(message) {
+    titleOutput.value = makeTitleText();
+    bodyOutput.value = makeBodyText();
+    refreshPortal();
+    if (message) setStatus(message);
+  }
+  function setAgency(key) {
+    agencyEl.value = key;
+    Array.from(agencyGrid.children).forEach((btn) => {
+      const sel = btn.dataset.agency === key;
+      btn.classList.toggle("is-selected", sel);
+      btn.setAttribute("aria-selected", sel ? "true" : "false");
+      const note = btn.querySelector(".agency-card-note");
+      if (note) note.textContent = sel ? "선택됨" : AGENCIES[btn.dataset.agency].note;
+    });
+    refreshAll(`${key}을(를) 처리기관으로 선택했습니다.`);
+  }
+  function setStatus(msg) {
+    statusEl.textContent = msg;
+    clearTimeout(setStatus.t);
+    setStatus.t = setTimeout(() => { statusEl.textContent = ""; }, 3200);
+  }
+  function ensureGenerated() {
+    if (!titleOutput.value.trim()) titleOutput.value = makeTitleText();
+    if (!bodyOutput.value.trim()) bodyOutput.value = makeBodyText();
+  }
+  async function copyText(text, fallbackEl, label) {
+    if (!text.trim()) { ensureGenerated(); text = fallbackEl.value; }
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus(`${label} 클립보드에 복사했습니다.`);
+    } catch (e) {
+      fallbackEl.focus(); fallbackEl.select();
+      setStatus(`${label} 선택되었습니다. 복사가 안 되면 Ctrl+C로 복사해 주세요.`);
+    }
+  }
+
+  $("makeTitle").addEventListener("click", () => {
+    titleOutput.value = makeTitleText();
+    setStatus("민원 제목을 생성했습니다. 제출 전 직접 확인해 주세요.");
+  });
+  $("makeBody").addEventListener("click", () => {
+    bodyOutput.value = makeBodyText();
+    setStatus("민원 본문을 생성했습니다. 사실관계와 표현을 검토해 주세요.");
+  });
+  smsToneSel.addEventListener("change", renderSms);
+  $("copyTitle").addEventListener("click", () => copyText(titleOutput.value, titleOutput, "제목을"));
+  $("copyBody").addEventListener("click", () => copyText(bodyOutput.value, bodyOutput, "본문을"));
+  $("copyAll").addEventListener("click", () => {
+    ensureGenerated();
+    const combined = `제목\n${titleOutput.value}\n\n본문\n${bodyOutput.value}`;
+    copyBuffer.value = combined;
+    copyText(combined, copyBuffer, "제목과 본문 전체를");
+  });
+  [purposeEl, stakeholderEl].forEach((el) =>
+    el.addEventListener("change", () => refreshAll("선택한 조건을 반영했습니다.")));
+  detailsEl.addEventListener("input", () => {
+    if (bodyOutput.value.trim()) bodyOutput.value = makeBodyText();
+  });
+
+  refreshAll(); // 국민신문고 초기 렌더
+  buildRcptCards(); buildToneSelect(); renderSms(); // 항의문자 초기 렌더
+  </script>
+</body>
+</html>
