@@ -64,15 +64,25 @@
     }
     .card > .sub { margin: 0 0 14px; color: var(--muted); font-size: .9rem; }
 
-    /* 하위 탭 (화면 전환) */
-    .subtabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    /* 하위 탭 (선택 탭과 본문이 하나의 묶음처럼 이어짐) */
+    .subtabs {
+      position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      align-items: end; margin: 0 0 -1px; padding: 0 4px;
+    }
     .subtab {
-      min-height: 46px; font-weight: 800; font-size: .94rem; color: var(--muted);
-      background: #fff; border: 1.5px solid var(--line); border-radius: 12px; cursor: pointer;
+      min-height: 54px; font-weight: 800; font-size: .94rem; color: var(--muted);
+      background: #fff; border: 1.5px solid var(--line); border-radius: 14px; cursor: pointer;
       transition: all .15s ease;
     }
-    .subtab.is-active { color: #fff; background: var(--accent); border-color: var(--accent); box-shadow: 0 6px 16px rgba(44,117,102,.24); }
+    .subtab.is-active {
+      min-height: 62px; color: #fff; background: var(--accent); border-color: var(--accent);
+      border-bottom-color: var(--accent); border-radius: 14px 14px 0 0; box-shadow: none;
+    }
+    .subpanel { position: relative; z-index: 1; }
     .subpanel[hidden] { display: none; }
+    .subpanel > .card { margin-top: 0; }
+    #tab-apply[data-mode="minwon"] #sec-minwon { border-top-left-radius: 0; }
+    #tab-apply[data-mode="sms"] #sec-sms { border-top-right-radius: 0; }
 
     /* 문자 수신인 그룹 */
     .sms-group { margin-top: 14px; }
@@ -220,7 +230,7 @@
     </header>
 
     <!-- ============ 탭 1: 민원 접수 시작하기 ============ -->
-    <section id="tab-apply" class="tabpanel" role="tabpanel">
+    <section id="tab-apply" class="tabpanel" role="tabpanel" data-mode="minwon">
       <div class="subtabs" role="tablist">
         <button class="subtab is-active" data-sub="minwon" role="tab" aria-selected="true">📮 국민신문고 접수</button>
         <button class="subtab" data-sub="sms" role="tab" aria-selected="false">📱 항의문자 발송</button>
@@ -440,7 +450,7 @@
     },
     "경기도청": {
       badge: "광역", rec: false, note: "탭하면 선택",
-      portal: { name: "경기도 민원", url: "https://www.gg.go.kr/" },
+      portal: { name: "국민신문고", url: "https://www.epeople.go.kr/" },
       role: "경기도청은 광역 지방자치단체로서 도시·군관리계획, 광역 조정, 도 승인·협의, 시·군 행정의 적정성 관리와 관련된 범위에서 법정 기준이 일관되게 집행되도록 살펴야 하는 기관입니다.",
       basis: [
         "「국토의 계획 및 이용에 관한 법률」상 계획·개발행위허가 체계는 용도지역·기반시설·위해방지·환경오염 방지·경관 등 객관적 기준을 전제로 합니다.",
@@ -711,6 +721,7 @@
       });
       $("sub-minwon").hidden = target !== "minwon";
       $("sub-sms").hidden = target !== "sms";
+      $("tab-apply").dataset.mode = target;
       $("tab-guide").hidden = true;
       updateGuideToggle();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -983,10 +994,8 @@ ${n + 1}. ${purpose.request}
     const note = isGyeonggi
       ? "경기도청에 접수할 때는 도 차원의 협의·승인·조정 기준, 광역 행정의 일관성, 재산권 침해 방지 내용을 중심으로 확인해 주세요."
       : "과천시청에 접수할 때는 건축허가·개발행위 등 시 소관 절차에 맞는 표현인지 확인해 주세요.";
-    const loginTitle = isGyeonggi ? "경기도 민원 접속 및 로그인" : "국민신문고 회원가입 및 로그인";
-    const loginDesc = isGyeonggi
-      ? "경기도 민원 접수 방식에 따라 회원 또는 비회원 본인확인 절차를 진행해 주세요."
-      : "본인인증(카카오·PASS 등)이 필요합니다.";
+    const loginTitle = "국민신문고 회원가입 및 로그인";
+    const loginDesc = "본인인증(카카오·PASS 등)이 필요합니다.";
     const values = {
       guidePortalName: portalName,
       guideAgencyHeading: agencyKey,
